@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Noesis — Cognitive Memory Dashboard</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+</head>
+<body>
+  <header class="header">
+    <div class="brand">
+      <span class="logo">&#9672;</span>
+      <div>
+        <h1>Noesis</h1>
+        <p class="tagline">Semantic + Symbolic Distributed AI Memory</p>
+      </div>
+    </div>
+    <div class="stats-bar" id="statsBar">Loading...</div>
+  </header>
+
+  <main class="layout">
+    <section class="panel chat-panel">
+      <h2>Memory Chat</h2>
+      <p class="hint">Every message is compressed into semantic memory — not raw chat logs.</p>
+      <div class="chat-messages" id="chatMessages"></div>
+      <form class="chat-form" id="chatForm">
+        <input type="text" id="chatInput" placeholder="Tell Noesis something to remember..." autocomplete="off" />
+        <button type="submit">Remember &amp; Recall</button>
+      </form>
+    </section>
+
+    <section class="panel graph-panel">
+      <h2>Knowledge Graph</h2>
+      <p class="hint">Associative recall: FastAPI &harr; Redis &harr; Scaling</p>
+      <div id="graphNetwork" class="graph-container"></div>
+      <div class="graph-controls">
+        <input type="text" id="conceptSearch" placeholder="Explore concept..." />
+        <button id="btnExplore">Explore</button>
+        <button id="btnRefresh">Refresh Graph</button>
+      </div>
+    </section>
+
+    <section class="panel memories-panel">
+      <h2>Compressed Memories</h2>
+      <div class="innovation-badges">
+        <span class="badge">Semantic Compression</span>
+        <span class="badge">Symbolic Packets</span>
+        <span class="badge">Graph Recall</span>
+        <span class="badge">Adaptive Forgetting</span>
+      </div>
+      <div id="memoriesList" class="memories-list"></div>
+      <div class="actions">
+        <button id="btnForget" class="btn-secondary">Run Forgetting Cycle</button>
+        <button id="btnCompare" class="btn-secondary">Demo Compression</button>
+      </div>
+      <pre id="outputBox" class="output-box"></pre>
+    </section>
+  </main>
+
+  <footer>
+    Noesis v1.0 — Semantic + Symbolic AI Memory &mdash; HOW memory is represented, compressed, evolved, shared, reconstructed.
+  </footer>
+  <script src="/static/app.js"></script>
+</body>
+</html>

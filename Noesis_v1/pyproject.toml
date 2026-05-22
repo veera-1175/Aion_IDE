@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "noesis"
+version = "1.0.0"
+description = "Noesis Memory Engine — Semantic + Symbolic Distributed AI Memory Architecture"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Noesis Team" }]
+keywords = ["ai", "memory", "semantic", "distributed", "cognition"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "sentence-transformers>=2.2.0",
+    "numpy>=1.24.0",
+    "sentencepiece>=0.1.99",
+    "msgpack>=1.0.0",
+    "networkx>=3.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+api = ["fastapi>=0.109.0", "uvicorn[standard]>=0.27.0", "pydantic>=2.0.0", "httpx>=0.26.0"]
+nlp = ["spacy>=3.7.0"]
+agents = ["langchain>=0.1.0", "langchain-core>=0.1.0", "langchain-community>=0.0.10"]
+graph = ["neo4j>=5.0.0"]
+sync = ["aiortc>=1.6.0"]
+dev = ["pytest>=7.4.0", "pytest-asyncio>=0.21.0", "httpx>=0.26.0"]
+all = ["noesis[api,agents,dev]"]
+
+[project.scripts]
+noesis = "noesis.cli:main"
+noesis-serve = "noesis.api.runner:main"
+
+[tool.setuptools.package-data]
+"noesis.api" = ["static/*"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["noesis*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

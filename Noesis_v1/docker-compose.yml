@@ -1,0 +1,28 @@
+services:
+  noesis:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - noesis_data:/app/data
+    environment:
+      - NOESIS_AGENT_ID=agent-docker
+    restart: unless-stopped
+
+  # Optional second agent for multi-agent sync demos
+  noesis-peer:
+    build: .
+    ports:
+      - "8081:8080"
+      - "8766:8765"
+    volumes:
+      - noesis_peer_data:/app/data
+    environment:
+      - NOESIS_AGENT_ID=agent-peer
+    command: ["python", "scripts/run_server.py", "--host", "0.0.0.0", "--port", "8080"]
+    profiles:
+      - multi-agent
+
+volumes:
+  noesis_data:
+  noesis_peer_data:

@@ -1,0 +1,39 @@
+project:
+  name: "AION"
+  version: "1.0.0"
+
+noesis:
+  db_path: "data/AION_memory.db"
+  agent_id: "AION-collective"
+
+workspace:
+  root: "workspace"
+  default_project: "generated_app"
+
+coordinator:
+  max_iterations: 3
+  recall_limit: 5          # Memory Agent searches past work (BMI, calendar, etc.)
+  coding_retries: 2
+
+llm:
+  enabled: true
+  provider: "groq"
+  model: "openai/gpt-oss-20b"
+  structured_outputs: true
+  auto_repair_web: false
+  inject_memory_into_coding: false  # Groq uses task text + files only, not old summaries
+  max_retries: 4
+  retry_base_seconds: 2.0
+  max_generation_attempts: 3
+
+agents:
+  coding: { enabled: true }
+  debug: { enabled: true }
+  testing: { enabled: true }
+  memory: { enabled: true }
+  summary: { enabled: true }   # Explains what was done after the job completes
+
+api:
+  host: "127.0.0.1"
+  port: 8090
+

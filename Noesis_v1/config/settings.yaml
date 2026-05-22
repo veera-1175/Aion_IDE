@@ -1,0 +1,43 @@
+# Noesis Memory Engine Configuration
+
+engine:
+  name: "Noesis"
+  version: "1.0.0"
+  agent_id: "agent-default"
+
+api:
+  host: "0.0.0.0"
+  port: 8080
+
+storage:
+  type: "sqlite"
+  path: "data/noesis.db"
+
+semantic:
+  embedding_model: "all-MiniLM-L6-v2"
+  similarity_threshold: 0.75
+  cluster_threshold: 0.72
+  redundancy_threshold: 0.88
+  min_importance: 0.15
+  abstraction_min_events: 2
+
+symbolic:
+  vocab_size: 512
+  sp_model_path: "data/symbolic_vocab.model"
+  compression: "msgpack"  # msgpack | zlib
+
+graph:
+  backend: "networkx"  # networkx | neo4j
+  max_traversal_depth: 4
+
+forgetting:
+  enabled: true
+  decay_rate: 0.02
+  min_retention_score: 0.1
+  review_boost: 0.15
+
+sync:
+  enabled: true
+  transport: "http_mesh"  # local | http_mesh | webrtc | libp2p
+  mesh_port: 8765
+  mesh_host: "0.0.0.0"

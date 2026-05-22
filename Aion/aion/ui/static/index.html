@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AION</title>
+  <link rel="icon" href="/static/logo.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@vscode/codicons@0.0.36/dist/codicon.css" />
+  <link rel="stylesheet" href="/static/styles.css?v=48" />
+</head>
+<body>
+  <div id="dropOverlay" class="drop-overlay hidden">
+    <div class="drop-overlay-inner">
+      <i class="codicon codicon-folder-opened drop-icon"></i>
+      <p class="drop-title">Drop files here for AI context</p>
+      <p class="drop-sub">Open a folder with Ctrl+O to edit on disk (no copy)</p>
+    </div>
+  </div>
+
+  <header class="titlebar">
+    <div class="titlebar-left">
+      <button type="button" class="titlebar-logo-btn" id="titlebarLogo" title="Home">
+        <img src="/static/logo.svg" class="titlebar-logo" width="20" height="20" alt="AION home" />
+      </button>
+      <nav class="menubar" id="menubar" aria-label="Application menu">
+        <button type="button" class="menubar-item" data-menu="file">File</button>
+        <button type="button" class="menubar-item" data-menu="edit">Edit</button>
+        <button type="button" class="menubar-item" data-menu="selection">Selection</button>
+        <button type="button" class="menubar-item" data-menu="view">View</button>
+        <button type="button" class="menubar-item" data-menu="go">Go</button>
+        <button type="button" class="menubar-item" data-menu="run">Run</button>
+        <button type="button" class="menubar-item" data-menu="terminal">Terminal</button>
+        <button type="button" class="menubar-item" data-menu="help">Help</button>
+      </nav>
+    </div>
+    <div class="titlebar-center">
+      <span class="titlebar-project" id="titlebarProject"></span>
+    </div>
+    <div class="titlebar-right">
+      <button type="button" class="titlebar-link-btn titlebar-editor-link hidden" id="titlebarEditorWindow" title="Open workspace in editor">
+        Editor Window <i class="codicon codicon-link-external"></i>
+      </button>
+      <button type="button" class="titlebar-link-btn" id="titlebarAgentsWindow" title="Open separate Agents Window (editor chat stays here — Ctrl+J)">
+        Agents Window <i class="codicon codicon-link-external"></i>
+      </button>
+    </div>
+  </header>
+  <div id="menubarMenu" class="menubar-menu hidden" role="menu"></div>
+
+  <div id="commandPalette" class="command-palette hidden">
+    <input type="text" id="paletteInput" placeholder="Command or file…" autocomplete="off" />
+    <div id="paletteResults" class="palette-results"></div>
+  </div>
+
+  <div id="contextMenu" class="context-menu hidden">
+    <button type="button" data-action="newFile">New File</button>
+    <button type="button" data-action="refresh">Refresh</button>
+  </div>
+
+  <div id="mentionMenu" class="mention-menu hidden"></div>
+
+  <main id="landingPage" class="landing-page">
+    <div class="landing-inner">
+      <div class="landing-brand">
+        <img src="/static/logo.svg" class="landing-logo" width="48" height="48" alt="" />
+        <h1 class="landing-title">AION</h1>
+        <div class="landing-meta-links">
+          <button type="button" class="landing-meta-link" id="landingPro" title="Pro features">Pro</button>
+          <button type="button" class="landing-meta-link" id="landingSettings" title="Settings">Settings</button>
+        </div>
+      </div>
+      <div class="landing-cards">
+        <button type="button" class="landing-card" id="landingOpenProject">
+          <i class="codicon codicon-folder-opened"></i>
+          <span>Open project</span>
+        </button>
+        <button type="button" class="landing-card" id="landingCloneRepo">
+          <i class="codicon codicon-repo-clone"></i>
+          <span>Clone repo</span>
+        </button>
+        <button type="button" class="landing-card" id="landingConnectSsh" title="Work on code on a remote server (like VS Code Remote SSH). Enter user@hostname, then use the terminal and AI panel.">
+          <i class="codicon codicon-remote"></i>
+          <span>Remote via SSH</span>
+        </button>
+      </div>
+      <div class="landing-recent">
+        <div class="landing-recent-header">
+          <span class="landing-recent-label">Recent projects</span>
+          <button type="button" class="landing-recent-viewall hidden" id="landingViewAll">View all (0)</button>
+        </div>
+        <div id="landingRecentList" class="landing-recent-list"></div>
+      </div>
+    </div>
+    <button type="button" class="landing-agents-pill" id="landingAgentsPill">
+      Try a new window for running parallel agents
+      <i class="codicon codicon-link-external"></i>
+    </button>
+  </main>
+
+  <div id="workbench" class="workbench hidden">
+    <div class="workbench-panel" id="workbenchPanel">
+      <aside id="agentsSidebar" class="agents-sidebar hidden" aria-label="Agents">
+        <div class="agents-sidebar-brand">
+          <img src="/static/logo.svg" class="agents-sidebar-logo" width="22" height="22" alt="" />
+        </div>
+        <div class="agents-sidebar-top-icons">
+          <button type="button" class="agents-icon-btn" title="Search agents (Ctrl+Shift+F)" id="agentsSidebarSearchBtn"><i class="codicon codicon-search"></i></button>
+          <button type="button" class="agents-icon-btn" title="Filter agents" id="agentsSidebarFilterBtn"><i class="codicon codicon-filter"></i></button>
+        </div>
+        <div id="agentsSidebarSearchWrap" class="agents-sidebar-search-wrap hidden">
+          <i class="codicon codicon-search agents-sidebar-search-icon"></i>
+          <input type="search" id="agentsSidebarSearchInput" placeholder="Search Agents" autocomplete="off" spellcheck="false" />
+          <button type="button" class="agents-search-clear hidden" id="agentsSidebarSearchClear" title="Clear search" aria-label="Clear search">
+            <i class="codicon codicon-close"></i>
+          </button>
+        </div>
+        <button type="button" class="agents-sidebar-action" id="agentsSidebarNew">
+          <span>New Agent</span>
+          <kbd>Ctrl+N</kbd>
+        </button>
+        <button type="button" class="agents-sidebar-action agents-sidebar-muted" id="agentsSidebarMarketplace">
+          <span>Marketplace</span>
+        </button>
+        <div id="agentsSidebarList" class="agents-sidebar-list"></div>
+        <div class="agents-sidebar-foot">
+          <button type="button" class="agents-sidebar-open-workspace" id="agentsOpenWorkspace" title="Choose folder for agents to create or edit">
+            <i class="codicon codicon-folder-opened"></i>
+            <span>Open Workspace</span>
+          </button>
+          <div class="agents-sidebar-foot-row">
+            <button type="button" class="agents-icon-btn" id="agentsSidebarSettings" title="Settings"><i class="codicon codicon-settings-gear"></i></button>
+          </div>
+        </div>
+      </aside>
+      <div class="sidebar-slot" id="sidebarSlot">
+        <div class="sidebar-chrome">
+          <div class="sidebar-nav-row">
+            <button type="button" class="sidebar-icon-btn" id="btnToggleSidebar" title="Toggle Sidebar (Ctrl+B)"><i class="codicon codicon-layout-sidebar-left"></i></button>
+            <button type="button" class="sidebar-icon-btn" id="btnNavBack" disabled title="Previous file (open 2+ files first)"><i class="codicon codicon-arrow-left"></i></button>
+            <button type="button" class="sidebar-icon-btn" id="btnNavForward" disabled title="Next file in history"><i class="codicon codicon-arrow-right"></i></button>
+            <button type="button" class="toolbar-run" id="btnRunFile" title="Run the open file only (e.g. this .py or preview this .html)"><i class="codicon codicon-play"></i> Run</button>
+            <button type="button" class="toolbar-run" id="btnRunProjectBar" title="Run the whole project folder (main.py, index.html, npm start, etc.)"><i class="codicon codicon-run-all"></i> Run Project</button>
+          </div>
+          <div class="sidebar-view-tabs" role="tablist">
+            <button type="button" class="view-tab active" data-view="explorer" title="Explorer (Ctrl+Shift+E)"><i class="codicon codicon-files"></i></button>
+            <button type="button" class="view-tab" data-view="search" title="Search (Ctrl+Shift+F)"><i class="codicon codicon-search"></i></button>
+            <button type="button" class="view-tab" data-view="run" title="Run"><i class="codicon codicon-run-all"></i></button>
+          </div>
+
+          <div class="sidebar-view" id="sidebarExplorer">
+            <div class="explorer-folder-row" id="workspaceRootRow">
+              <button type="button" class="tree-twistie" id="btnRootTwistie" aria-expanded="true"><i class="codicon codicon-chevron-down"></i></button>
+              <span class="workspace-root-name" id="workspaceFolderName" title="">Open Folder</span>
+              <div class="explorer-toolbar-actions">
+                <button type="button" class="explorer-action" id="btnNewFile" title="New File"><i class="codicon codicon-new-file"></i></button>
+                <button type="button" class="explorer-action" id="btnNewFolder" title="New Folder"><i class="codicon codicon-new-folder"></i></button>
+                <button type="button" class="explorer-action" id="btnRefreshTree" title="Refresh"><i class="codicon codicon-refresh"></i></button>
+                <button type="button" class="explorer-action" id="btnCollapseAll" title="Collapse Folders"><i class="codicon codicon-collapse-all"></i></button>
+              </div>
+            </div>
+            <select id="projectSelect" class="project-select-hidden" aria-hidden="true" tabindex="-1"></select>
+            <div class="file-tree-scroll">
+              <div id="fileTree" class="file-tree"></div>
+            </div>
+          </div>
+
+          <div class="sidebar-view hidden" id="sidebarSearch">
+            <div class="search-box-wrap">
+              <i class="codicon codicon-search"></i>
+              <input type="text" id="searchInput" placeholder="Search" />
+            </div>
+            <div id="searchResults" class="search-results"></div>
+          </div>
+
+          <div class="sidebar-view hidden" id="sidebarRun">
+            <div class="run-sidebar">
+              <button type="button" class="welcome-btn run-sidebar-btn" id="btnRunProjectSide"><i class="codicon codicon-play"></i> Run Project (F5)</button>
+              <button type="button" class="welcome-btn secondary run-sidebar-btn" id="btnRunFileSide"><i class="codicon codicon-debug-start"></i> Run File</button>
+              <button type="button" class="welcome-btn secondary run-sidebar-btn" id="btnStopRun"><i class="codicon codicon-debug-stop"></i> Stop</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="sidebar-resizer" id="sidebarResizer"></div>
+
+      <section class="editor-part">
+        <div class="editor-container">
+          <div class="editor-toolbar">
+            <span class="toolbar-path" id="toolbarPath"></span>
+          </div>
+          <div class="breadcrumbs" id="breadcrumbs"></div>
+          <div class="tab-bar" id="tabBar"></div>
+          <div class="editor-instance">
+            <div id="monacoHost" class="monaco-host"></div>
+            <textarea id="codeFallback" class="code-fallback hidden" spellcheck="false" aria-label="Code editor"></textarea>
+            <div id="welcomeEditor" class="welcome-editor hidden">
+              <p class="welcome-hint">Open a file from the explorer or press Ctrl+O</p>
+            </div>
+            <input type="text" id="pathPaste" class="sr-only" tabindex="-1" aria-hidden="true" />
+          </div>
+          <div class="panel-resizer" id="panelResizer"></div>
+          <div class="bottom-panel hidden" id="bottomPanel">
+            <div class="panel-tabs">
+              <button type="button" class="panel-tab" data-panel="terminal">Terminal</button>
+              <button type="button" class="panel-tab active" data-panel="output">Output</button>
+              <button type="button" class="panel-tab" data-panel="problems">Problems</button>
+              <button type="button" class="panel-tab-close" id="btnClosePanel"><i class="codicon codicon-close"></i></button>
+            </div>
+            <div class="panel-body hidden" id="panelTerminal">
+              <div id="terminalOutput" class="terminal-output"></div>
+              <div class="terminal-input-row">
+                <span class="terminal-prompt">$</span>
+                <input type="text" id="terminalInput" placeholder="Command in project folder…" />
+              </div>
+            </div>
+            <div class="panel-body" id="panelOutput"><div id="runOutput" class="terminal-output"></div></div>
+            <div class="panel-body hidden" id="panelProblems"><div id="problemsList" class="problems-list"></div></div>
+          </div>
+        </div>
+      </section>
+
+      <div class="aux-resizer" id="auxResizer"></div>
+      <aside class="auxiliary-bar" id="auxiliaryBar">
+        <div class="aux-collapsed-rail" id="auxCollapsedRail" title="Show Agent panel">
+          <button type="button" class="sidebar-icon-btn" id="btnToggleAuxRail" title="Show Agent panel (Ctrl+J)"><i class="codicon codicon-layout-sidebar-right"></i></button>
+          <button type="button" class="sidebar-icon-btn" id="btnPopoutAuxRail" title="Agents Window"><i class="codicon codicon-link-external"></i></button>
+        </div>
+        <div class="aux-panel-inner" id="auxPanelInner">
+        <div class="aux-top-chrome">
+          <div class="aux-tabs-row">
+            <div class="exec-tabs-scroll" id="execTabsBar" role="tablist"></div>
+            <div class="aux-tab-actions">
+              <button type="button" class="aux-tab-tool" id="btnNewExecTab" title="New Agent"><i class="codicon codicon-add"></i></button>
+              <button type="button" class="aux-tab-tool" id="btnExecHistory" title="Session history"><i class="codicon codicon-history"></i></button>
+              <button type="button" class="aux-tab-tool" id="btnAuxTabMoreRight" title="More actions"><i class="codicon codicon-ellipsis"></i></button>
+              <button type="button" class="aux-tab-tool" id="btnToggleAux" title="Hide agent panel (Ctrl+J)"><i class="codicon codicon-layout-sidebar-right"></i></button>
+            </div>
+          </div>
+        </div>
+        <div class="aux-main-stack">
+          <div id="agentsHomeView" class="agents-home-view hidden">
+            <div class="agents-home-toolbar">
+              <div class="agents-workspace-hub">
+                <button type="button" class="agents-workspace-trigger" id="agentsWorkspaceTrigger" aria-expanded="false" aria-haspopup="true">
+                  <span id="agentsWorkspaceTriggerLabel">SELECT WORKSPACE</span>
+                  <i class="codicon codicon-chevron-down agents-ws-chev"></i>
+                  <i class="codicon codicon-laptop agents-ws-device" title="This PC"></i>
+                </button>
+                <div id="agentsWorkspaceMenu" class="agents-workspace-menu hidden" role="menu">
+                  <div class="agents-workspace-search-wrap">
+                    <input type="text" id="agentsWorkspaceSearch" placeholder="Run AION anywhere…" autocomplete="off" spellcheck="false" />
+                  </div>
+                  <div class="agents-workspace-section-label">Recents</div>
+                  <div id="agentsWorkspaceRecents" class="agents-workspace-list"></div>
+                  <div class="agents-workspace-section-label">Run On</div>
+                  <button type="button" class="agents-workspace-row" id="agentsRunOnLocal" data-run-on="local">
+                    <i class="codicon codicon-laptop"></i>
+                    <span>This PC</span>
+                    <i class="codicon codicon-check agents-ws-check"></i>
+                  </button>
+                  <button type="button" class="agents-workspace-row agents-workspace-row-muted" id="agentsRunOnCloud" title="Coming soon" disabled>
+                    <i class="codicon codicon-cloud"></i>
+                    <span>AION Cloud</span>
+                  </button>
+                  <div class="agents-workspace-divider"></div>
+                  <button type="button" class="agents-workspace-row" id="agentsWsOpenFolder">
+                    <i class="codicon codicon-folder-opened"></i>
+                    <span>Open Folder</span>
+                  </button>
+                  <button type="button" class="agents-workspace-row" id="agentsWsConnectSsh">
+                    <i class="codicon codicon-remote"></i>
+                    <span>Connect via SSH</span>
+                  </button>
+                </div>
+              </div>
+              <div id="agentsHomeCompose" class="agents-home-compose"></div>
+              <button type="button" class="agents-home-layout-btn" title="Layout"><i class="codicon codicon-layout"></i></button>
+            </div>
+          </div>
+          <div class="aux-content" id="composerFeed"></div>
+          <div id="agentsHistoryPanel" class="agents-history-panel hidden">
+            <input type="search" id="agentsHistorySearch" class="agents-history-search" placeholder="Search Agents…" autocomplete="off" />
+            <button type="button" class="agents-history-new" id="btnHistoryNewAgent"><i class="codicon codicon-add"></i> New Agent</button>
+            <div id="agentsHistoryList" class="agents-history-list"></div>
+          </div>
+          <div id="taskModeBanner" class="task-mode-banner hidden"></div>
+        </div>
+        <div class="aux-footer" id="auxFooter">
+          <div id="agentResultsBar" class="agent-results-bar hidden">
+            <button type="button" class="agent-files-toggle" id="btnFilesToggle" aria-expanded="false">
+              <i class="codicon codicon-chevron-right" id="filesToggleIcon"></i>
+              <span id="agentFilesCount">0 Files</span>
+            </button>
+            <div class="agent-results-actions">
+              <button type="button" id="btnUndoAll" class="agent-action-btn">Undo All</button>
+              <button type="button" id="btnReview" class="agent-action-btn primary" disabled><i class="codicon codicon-diff"></i> Review</button>
+            </div>
+          </div>
+          <div id="agentFilesList" class="agent-files-list hidden"></div>
+          <div id="agentRunningBar" class="agent-running-bar hidden">
+            <div class="agent-running-left">
+              <i class="codicon codicon-loading codicon-modifier-spin"></i>
+              <span id="agentRunningLabel">Agent is working…</span>
+            </div>
+            <button type="button" id="btnStop" class="agent-action-btn stop" disabled><i class="codicon codicon-debug-stop"></i> Stop</button>
+          </div>
+          <div id="agentBgTerminals" class="agent-bg-terminals hidden">
+            <button type="button" class="agent-bg-toggle" id="btnBgTerminalsToggle" aria-expanded="false">
+              <i class="codicon codicon-chevron-right" id="bgTermChevron"></i>
+              <i class="codicon codicon-terminal"></i>
+              <span id="bgTerminalCountLabel">Background terminals</span>
+            </button>
+            <div id="agentBgTerminalList" class="agent-bg-terminal-list hidden"></div>
+          </div>
+          <div id="attachChips" class="attach-chips"></div>
+          <div class="chat-input-wrapper" id="chatDropZone">
+            <div class="chat-input-box" id="chatInputBox">
+              <textarea id="followUp" rows="3" placeholder="Plan, Build, / for commands, @ for context"></textarea>
+              <div class="chat-input-toolbar">
+                <div class="toolbar-left">
+                  <button type="button" class="pill-btn" id="btnAttach" title="Attach files or images"><i class="codicon codicon-add"></i></button>
+                  <div class="mode-dropdown-wrap agents-home-hide-agent" id="agentModeWrap">
+                    <button type="button" class="pill-btn mode-toggle" id="btnAgentMode" title="Agent mode">
+                      <i class="codicon codicon-infinity" id="agentModeIcon"></i>
+                      <span id="agentModeLabel">Agent</span>
+                      <i class="codicon codicon-chevron-down mode-chev"></i>
+                    </button>
+                    <div id="agentModeMenu" class="chat-dropdown-menu hidden"></div>
+                  </div>
+                  <div class="mode-dropdown-wrap" id="taskModeWrap">
+                    <button type="button" class="pill-btn mode-toggle mode-toggle-plain" id="btnTaskMode" title="Task mode: Auto, Create, or Edit">
+                      <i class="codicon codicon-wand" id="taskModeIcon"></i>
+                      <span id="taskModeLabel">Auto</span>
+                      <i class="codicon codicon-chevron-down mode-chev"></i>
+                    </button>
+                    <div id="taskModeMenu" class="chat-dropdown-menu hidden"></div>
+                  </div>
+                </div>
+                <button type="button" class="icon-tool" id="btnSend" title="Send (Enter)"><i class="codicon codicon-arrow-up"></i></button>
+              </div>
+            </div>
+          </div>
+          <input type="file" id="chatFileInput" class="sr-only" multiple accept="image/*,.py,.js,.ts,.html,.css,.json,.md,.txt,.yaml,.yml,.env,.toml,.sh,.xml,.ini,.cfg" />
+          <span class="run-meta sr-only" id="composerStatus" aria-live="polite"></span>
+        </div>
+        <div id="agentsHomeFooter" class="agents-home-footer hidden">
+          <button type="button" class="agents-plan-chip" id="agentsPlanChip">
+            Plan New Idea
+            <kbd>Tab</kbd>
+          </button>
+        </div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <footer class="statusbar">
+    <div class="statusbar-left">
+      <span class="status-item status-branch" id="statusBranch" title="Workspace"><i class="codicon codicon-repo"></i> Aion_IDE</span>
+      <span class="status-item status-problems" id="statusErrors" title="Errors"><i class="codicon codicon-error"></i> 0</span>
+      <span class="status-item status-problems" id="statusWarnings" title="Warnings"><i class="codicon codicon-warning"></i> 0</span>
+    </div>
+    <span class="status-item status-message" id="statusText">Ready</span>
+    <div class="statusbar-right">
+      <span class="status-item status-actions">
+        <button type="button" class="status-icon-btn" id="btnOpenFolder" title="Open Folder (Ctrl+O)"><i class="codicon codicon-folder-opened"></i></button>
+        <button type="button" class="status-icon-btn" id="btnSave" title="Save (Ctrl+S)"><i class="codicon codicon-save"></i></button>
+        <button type="button" class="status-icon-btn" id="btnToggleTerminal" title="Terminal (Ctrl+`)"><i class="codicon codicon-terminal"></i></button>
+      </span>
+      <span class="status-item" id="statusPos">Ln 1, Col 1</span>
+      <span class="status-item" id="statusLang">Plain Text</span>
+      <span class="status-item" id="stats"></span>
+    </div>
+  </footer>
+
+  <div id="auxDropdown" class="aux-dropdown hidden"></div>
+  <div id="execHistoryMenu" class="aux-dropdown hidden"></div>
+
+  <div id="settingsOverlay" class="settings-overlay hidden">
+    <div class="settings-panel">
+      <header class="settings-header">
+        <span><i class="codicon codicon-settings-gear"></i> Settings</span>
+        <button type="button" id="btnCloseSettings" class="aux-header-icon"><i class="codicon codicon-close"></i></button>
+      </header>
+      <div class="settings-body">
+        <label for="settingsAgentMode">Default agent mode</label>
+        <select id="settingsAgentMode">
+          <option value="agent">Agent (full pipeline)</option>
+          <option value="plan">Plan (steps only)</option>
+          <option value="debug">Debug (fix errors)</option>
+          <option value="ask">Ask (chat only)</option>
+        </select>
+        <label for="settingsTaskMode">Default task mode</label>
+        <select id="settingsTaskMode">
+          <option value="auto">Auto</option>
+          <option value="edit">Edit</option>
+          <option value="create">Create</option>
+        </select>
+        <label class="settings-check"><input type="checkbox" id="settingsOpenTerminal" /> Open terminal when agent runs</label>
+        <label class="settings-check"><input type="checkbox" id="settingsOpenOutput" /> Open output panel on Run / Run Project</label>
+      </div>
+    </div>
+  </div>
+
+  <div id="reviewOverlay" class="review-overlay hidden">
+    <div class="review-panel">
+      <header class="review-header">
+        <span>Review changes</span>
+        <button type="button" id="btnCloseReview" class="action-label"><i class="codicon codicon-close"></i></button>
+      </header>
+      <div class="review-files" id="reviewFileList"></div>
+      <div id="reviewDiffHost" class="review-diff-host"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/monaco-editor@0.52.2/min/vs/loader.js"></script>
+  <script src="/static/app.js?v=48"></script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+# Noesis Memory Engine — Core
+sentence-transformers>=2.2.0
+numpy>=1.24.0
+sentencepiece>=0.1.99
+msgpack>=1.0.0
+networkx>=3.0
+pyyaml>=6.0
+
+# API + Dashboard
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+pydantic>=2.0.0
+
+# Optional integrations
+# langchain-core>=0.1.0
+# langchain>=0.1.0
+# neo4j>=5.0.0
+
+# Dev / Test
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+httpx>=0.26.0
