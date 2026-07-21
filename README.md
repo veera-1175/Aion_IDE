@@ -8,7 +8,7 @@
 
 > Multi-agent coding system (plan → code → debug → test) backed by **Noesis** — a shared long-term memory so agents remember fixes, patterns, and architecture decisions across sessions.
 
-Solo-built by **[Veerasegaran V P](https://github.com/veera-1175)** as an independent product exploring agent orchestration and durable engineering memory — not a one-shot codegen demo.
+Built by **[veera](https://github.com/veera-1175)**.
 
 ---
 
@@ -159,6 +159,6 @@ Agents stay focused workers; **Noesis gives continuity**.
 
 ## License
 
-MIT © [Veerasegaran V P](https://github.com/veera-1175)
+MIT © [veera](https://github.com/veera-1175)
 
 **Aion IDE** — agents that keep engineering memory.
