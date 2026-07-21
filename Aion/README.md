@@ -99,4 +99,4 @@ aion serve --port 8090
 
 ## License
 
-MIT © [veera](https://github.com/veera-1175)
+MIT © [Veera](https://github.com/veera-1175)
